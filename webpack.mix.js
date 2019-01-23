@@ -13,9 +13,15 @@ mix.js('app/js/app.js', 'public/bundle.js')
   })
   // .copyDirectory('app/assets/fonts/**/*.*', 'public/fonts')
   .webpackConfig({
+    module: {
+      rules: [{
+        test: /\.twig$/,
+        loader: 'twig-loader'
+      }]
+    },
     plugins: [
       new CopyWebpackPlugin([{
-        from: 'app/assets/img',
+        from: 'app/assets/images',
         to: 'public/img', // Laravel mix will place this in 'public/img'
       }]),
       new ImageminPlugin({
