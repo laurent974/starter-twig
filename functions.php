@@ -10,7 +10,7 @@
 
 if ( ! class_exists( 'Timber' ) ) {
 	add_action( 'admin_notices', function() {
-		echo '<div class="error"><p>Timber not activated. Make sure you activate the plugin in <a href="' . esc_url( admin_url( 'plugins.php#timber' ) ) . '">' . esc_url( admin_url( 'plugins.php' ) ) . '</a></p></div>';
+		echo '<div class="error"><p>Timber n\'est pas activé. Veuillez activer le plugin dans <a href="' . esc_url( admin_url( 'plugins.php#timber' ) ) . '">' . esc_url( admin_url( 'plugins.php' ) ) . '</a></p></div>';
 	});
 
 	add_filter('template_include', function( $template ) {
@@ -44,6 +44,60 @@ class StarterSite extends Timber\Site {
 		add_filter( 'get_twig', array( $this, 'add_to_twig' ) );
 		add_action( 'init', array( $this, 'register_post_types' ) );
 		add_action( 'init', array( $this, 'register_taxonomies' ) );
+
+		// Custom Clean Header
+		add_filter('show_admin_bar', '__return_false');
+		remove_action( 'wp_head', 'rsd_link' );
+		remove_action( 'wp_head', 'wlwmanifest_link' );
+		remove_action( 'wp_head', 'wp_generator' );
+		remove_action( 'wp_head', 'start_post_rel_link' );
+		remove_action( 'wp_head', 'index_rel_link' );
+		remove_action( 'wp_head', 'adjacent_posts_rel_link' );
+		remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+		remove_action( 'wp_head','qtranxf_wp_head_meta_generator');
+		remove_action( 'wp_head', 'wp_resource_hints', 2 );
+
+		// Admin Footer Text
+		function wpc_remove_footer_admin() {
+			echo 'Back Office - Chassons.com';
+		}
+		add_filter('admin_footer_text', 'wpc_remove_footer_admin');
+
+		// Admin Delete Logo Wordpress
+		function remove_wp_logo( $wp_admin_bar ) {
+			$wp_admin_bar->remove_node( 'wp-logo' );
+		}
+		add_action( 'admin_bar_menu', 'remove_wp_logo', 999 );
+
+		// Clean JS
+		function starter_scripts() {
+			wp_deregister_script( 'jquery' );
+			wp_register_script( 'jquery', 'https://code.jquery.com/jquery-3.3.1.min.js', false, NULL, false );
+			wp_enqueue_script( 'jquery' );
+
+			wp_enqueue_style( 'starter-style', get_stylesheet_uri() );
+			wp_enqueue_script( 'includes', get_template_directory_uri() . '/public/bundle.js', array('jquery'), '', true );
+		}
+		add_action( 'wp_enqueue_scripts', 'starter_scripts' );
+
+		/**
+		 *  Remove h1 from the WordPress editor.
+		 *
+		 *  @param   array  $init  The array of editor settings
+		 *  @return  array         The modified edit settings
+		 */
+		function modify_editor_buttons( $init ) {
+				$init['block_formats'] = 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6;Preformatted=pre;';
+				return $init;
+		}
+		add_filter( 'tiny_mce_before_init', 'modify_editor_buttons' );
+
+		/* TinyMCE custom styles */
+		function custom_editor_styles() {
+				add_editor_style('custom-editor-style.css');
+		}
+
+		add_action( 'admin_init', 'custom_editor_styles' );
 		parent::__construct();
 	}
 	/** This is where you can register custom post types. */
@@ -60,9 +114,9 @@ class StarterSite extends Timber\Site {
 	 * @param string $context context['this'] Being the Twig's {{ this }}.
 	 */
 	public function add_to_context( $context ) {
-		$context['foo'] = 'bar';
-		$context['stuff'] = 'I am a value set in your functions.php file';
-		$context['notes'] = 'These values are available everytime you call Timber::get_context();';
+		// $context['foo'] = 'bar';
+		// $context['stuff'] = 'I am a value set in your functions.php file';
+		// $context['notes'] = 'These values are available everytime you call Timber::get_context();';
 		$context['menu'] = new Timber\Menu();
 		$context['site'] = $this;
 		return $context;
